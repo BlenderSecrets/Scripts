@@ -1,0 +1,48 @@
+
+
+
+
+********** What is this **********
+
+This script adds a button called "Add Random Hooks" in the Option panel that adds 30 hook on random places on the active object, as well as a Cloth sim. Play the Timeline and grab the hooks to create realistic folds in your cloth object. Then once you're done with that, apply the modifiers and remove hooks with the "Remove Hooks" button. Unfortunately both buttons are in separate tabs, sorry about that. Have fun!
+
+Disclaimer: I have no idea what I'm doing and created this 90% using ChatGPT and 10% by accidentally copy/pasting the right code from the Blender info window. Use with caution! 
+
+Works with Blender 2.93.15 LTS (that's what ChatGPT knows best, it seems). Above that, it may not work as predicted.
+
+
+
+************ How to use *****************
+
+Load the script in the Text editor or just create a new text and copy/paste it there. Then press the play button to run it.
+
+Then you will see the button "Add Some Hooks" in the Tool tab of the Option Panel (N) in the 3D viewport.
+
+Click it to add Hooks randomly. It also add a Cloth modifier with some useful settings (longer timeline and cache, self collision, no gravity, pinned vertex group called "Random Vertices".)
+
+You will need to add Collision to the character underneath the cloth object yourself.
+
+Then you can press the play button on the Timeline, and grab the empties to adjust the cloth. 
+Note, that the empties are quite big in order to compensate for a big mesh (which I recommend for better simulations).
+
+After you're happy with the result, you can find the "Remove Hooks" button.
+
+When you click that, the hooks are removed and the modifiers on the object are applied. Note that the object has to be selected! Otherwise you'll get an error. The vertex group "Random Vertices" is also removed.
+
+
+************** Disclaimer ********************
+
+
+Have fun! It's a work in progress so maybe don't use it for production on Avatar 5: The revenge. Or do! That would be cool. Just don't sue me if your computer explodes. I'm not a real programmer.
+
+
+
+
+
+
+
+
+
+
+
+
