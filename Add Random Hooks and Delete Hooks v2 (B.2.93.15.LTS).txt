@@ -1,0 +1,140 @@
+import bpy
+
+class EvenlySpacedVerticesOperator(bpy.types.Operator):
+    bl_idname = "object.evenly_spaced_vertices"
+    bl_label = "Add Some Hooks"
+
+    def execute(self, context):
+        # Get the active object and its mesh
+        obj = bpy.context.active_object
+        mesh = obj.data
+
+        # Create a new vertex group named "Random Verts"
+        vg_name = "Random Verts"
+        vg = obj.vertex_groups.new(name=vg_name)
+
+        # Select 30 evenly spaced vertices
+        num_verts = len(mesh.vertices)
+        step = num_verts // 30
+        evenly_spaced_indices = range(0, num_verts, step)
+
+        # Add each evenly spaced vertex to the "Random Verts" vertex group
+        for index in evenly_spaced_indices:
+            # Get the vertex and its local coordinates
+            vertex = mesh.vertices[index]
+
+            # Add the vertex to the "Random Verts" vertex group
+            vg.add([index], 1.0, 'ADD')
+
+            # Create a new empty object and set its location to the evenly spaced vertex
+            empty = bpy.data.objects.new(f"Hook{index}", None)
+            empty.location = obj.matrix_world @ vertex.co
+            empty.empty_display_type = 'SPHERE'
+            empty.empty_display_size = 3.0
+            bpy.context.scene.collection.objects.link(empty)
+
+            # Apply the location of the empty object
+            bpy.ops.object.visual_transform_apply()
+
+            # Add a hook modifier to the active object and set it to use the empty object
+            modifier = obj.modifiers.new(f"Hook{index}", type='HOOK')
+            modifier.object = empty
+            modifier.vertex_indices_set([index])
+
+        # Add a cloth modifier to the object and set it up
+        cloth_modifier = obj.modifiers.new(name="Cloth", type='CLOTH')
+        bpy.context.object.modifiers["Cloth"].settings.vertex_group_mass = "Random Verts"
+        bpy.context.object.modifiers["Cloth"].collision_settings.use_self_collision = True
+        bpy.context.object.modifiers["Cloth"].settings.effector_weights.gravity = 0
+        cloth_modifier.point_cache.frame_end = 10000
+
+        # Set the end frame of the timeline to 10000
+        bpy.context.scene.frame_end = 10000
+
+        return {'FINISHED'}
+
+class EvenlySpacedVerticesPanel(bpy.types.Panel):
+    bl_idname = "OBJECT_PT_evenly_spaced_vertices_panel"
+    bl_label = "Add Some Hooks"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Tools"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("object.evenly_spaced_vertices")
+
+def register():
+    bpy.utils.register_class(EvenlySpacedVerticesOperator)
+    bpy.utils.register_class(EvenlySpacedVerticesPanel)
+
+def unregister():
+    bpy.utils.unregister_class(EvenlySpacedVerticesOperator)
+    bpy.utils.unregister_class(EvenlySpacedVerticesPanel)
+
+if __name__ == "__main__":
+    register()
+
+import bpy
+
+class RemoveHooksOperator(bpy.types.Operator):
+    """Remove all hooks from active object"""
+    bl_idname = "object.remove_hooks_operator"
+    bl_label = "Remove Hooks"
+
+    def execute(self, context):
+        # Get the active object
+        obj = context.active_object
+
+        if obj is None:
+            self.report({'ERROR'}, "No active object in the scene.")
+            return {'CANCELLED'}
+
+        # Check if object is in object mode
+        if obj.mode != 'OBJECT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        # Convert active object to mesh
+        if obj.type != 'MESH':
+            bpy.ops.object.convert(target='MESH')
+
+        # Apply all modifiers on the active object
+        for modifier in obj.modifiers:
+            bpy.ops.object.modifier_apply(modifier=modifier.name)
+
+        # Delete vertex group "Random Verts"
+        if "Random Verts" in obj.vertex_groups:
+            obj.vertex_groups.remove(obj.vertex_groups["Random Verts"])
+
+        # Delete all empties in the scene
+        for empty in bpy.data.objects:
+            if empty.type == 'EMPTY':
+                bpy.data.objects.remove(empty, do_unlink=True)
+
+        return {'FINISHED'}
+
+class RemoveHooksPanel(bpy.types.Panel):
+    """Creates a Panel in the Object Tools panel"""
+    bl_idname = "OBJECT_PT_remove_hooks"
+    bl_label = "Remove Hooks"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Object Tools"
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        row.operator("object.remove_hooks_operator", text="Remove Hooks")
+
+def register():
+    bpy.utils.register_class(RemoveHooksOperator)
+    bpy.utils.register_class(RemoveHooksPanel)
+
+def unregister():
+    bpy.utils.unregister_class(RemoveHooksOperator)
+    bpy.utils.unregister_class(RemoveHooksPanel)
+
+if __name__ == "__main__":
+    register()
+
